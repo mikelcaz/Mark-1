@@ -4,6 +4,10 @@
 [org 0x0000]
 
 stage_1:
+	; CS:IP canonization.
+	jmp 0x07C0:.after_canonization
+	.after_canonization:
+
 	mov AH, 0x0E
 	xor BX, BX
 
