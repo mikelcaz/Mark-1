@@ -8,6 +8,10 @@ stage_1:
 	jmp 0x07C0:.after_canonization
 	.after_canonization:
 
+	; Data segment initialization.
+	mov AX, 0x07C0
+	mov DS, AX
+
 	mov AH, 0x0E
 	xor BX, BX
 
