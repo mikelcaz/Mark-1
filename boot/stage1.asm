@@ -18,7 +18,6 @@ stage_1:
 	mov DS, AX
 
 	; BIOS stores the boot drive in this register.
-	; 0x80 and 0x00 are the only expected values.
 	mov [.boot_drive], DL
 
 	; Stack setup for stage 1.
@@ -32,12 +31,16 @@ stage_1:
 	mov AH, 0x0E
 	int 0x10
 
+	mov DL, 0x12
+	call print_hex_b
+
 	jmp $
 
 ; It must be loaded at runtime.
 .boot_drive db 0x00
 
 %include 'boot/video_16.asm'
+%include 'boot/print_16/hex.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
