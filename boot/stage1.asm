@@ -25,13 +25,16 @@ stage_1:
 	mov SS, BP
 	mov SP, 0xFFFF
 
+	cld
 	xor BX, BX
 
 	call enforce_tty_video_mode
 	mov AH, 0x0E
 	int 0x10
 
+	mov SI, .hello
 	mov DL, 0x12
+	call print_string
 	call print_hex_b
 
 	jmp $
@@ -39,8 +42,11 @@ stage_1:
 ; It must be loaded at runtime.
 .boot_drive db 0x00
 
+.hello db 'Hello, World!', 0
+
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
+%include 'boot/print_16/string.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
