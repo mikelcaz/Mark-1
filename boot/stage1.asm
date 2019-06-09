@@ -26,44 +26,18 @@ stage_1:
 	mov SS, BP
 	mov SP, 0xFFFF
 
-	mov AH, 0x0E
 	xor BX, BX
 
-	mov AL, 'H'
-	int 0x10
-	mov AL, 'e'
-	int 0x10
-	mov AL, 'l'
-	int 0x10
-	mov AL, 'l'
-	int 0x10
-	mov AL, 'o'
-	int 0x10
-	mov AL, ','
-	int 0x10
-	mov AL, ' '
-	int 0x10
-	mov AL, 'W'
-	int 0x10
-	mov AL, 'o'
-	int 0x10
-	mov AL, 'r'
-	int 0x10
-	mov AL, 'l'
-	int 0x10
-	mov AL, 'd'
-	int 0x10
-	mov AL, '!'
-	int 0x10
-	mov AL, 0xD
-	int 0x10
-	mov AL, 0xA
+	call enforce_tty_video_mode
+	mov AH, 0x0E
 	int 0x10
 
 	jmp $
 
 ; It must be loaded at runtime.
 .boot_drive db 0x00
+
+%include 'boot/video_16.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
