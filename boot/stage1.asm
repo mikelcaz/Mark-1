@@ -4,6 +4,11 @@
 [org 0x0000]
 
 stage_1:
+	; The stack spans over the last _ensured_ free segment
+	; (i.e., 64 KiB from 0x70000 to 0x80000 - 1)
+	; before the EBDA (Extended BIOS Data Area).
+	.stack_segment EQU 0x7000
+.begin:
 	; CS:IP canonization.
 	jmp 0x07C0:.after_canonization
 	.after_canonization:
@@ -15,6 +20,11 @@ stage_1:
 	; BIOS stores the boot drive in this register.
 	; 0x80 and 0x00 are the only expected values.
 	mov [.boot_drive], DL
+
+	; Stack setup for stage 1.
+	mov BP, .stack_segment
+	mov SS, BP
+	mov SP, 0xFFFF
 
 	mov AH, 0x0E
 	xor BX, BX
