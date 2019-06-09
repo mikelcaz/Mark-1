@@ -1,6 +1,43 @@
 [bits 16]
 
+; The binary is expected to be loaded at 0x07C00, though.
+[org 0x0000]
+
 stage_1:
+	mov AH, 0x0E
+	xor BX, BX
+
+	mov AL, 'H'
+	int 0x10
+	mov AL, 'e'
+	int 0x10
+	mov AL, 'l'
+	int 0x10
+	mov AL, 'l'
+	int 0x10
+	mov AL, 'o'
+	int 0x10
+	mov AL, ','
+	int 0x10
+	mov AL, ' '
+	int 0x10
+	mov AL, 'W'
+	int 0x10
+	mov AL, 'o'
+	int 0x10
+	mov AL, 'r'
+	int 0x10
+	mov AL, 'l'
+	int 0x10
+	mov AL, 'd'
+	int 0x10
+	mov AL, '!'
+	int 0x10
+	mov AL, 0xD
+	int 0x10
+	mov AL, 0xA
+	int 0x10
+
 	jmp $
 
 times (0x200 - 72) - ($ - $$) nop
