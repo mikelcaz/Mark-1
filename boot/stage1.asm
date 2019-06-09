@@ -12,6 +12,10 @@ stage_1:
 	mov AX, 0x07C0
 	mov DS, AX
 
+	; BIOS stores the boot drive in this register.
+	; 0x80 and 0x00 are the only expected values.
+	mov [.boot_drive], DL
+
 	mov AH, 0x0E
 	xor BX, BX
 
@@ -47,6 +51,9 @@ stage_1:
 	int 0x10
 
 	jmp $
+
+; It must be loaded at runtime.
+.boot_drive db 0x00
 
 times (0x200 - 72) - ($ - $$) nop
 
