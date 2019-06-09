@@ -23,3 +23,5 @@ $(TARG).bin: $(LAYOUT)
 
 %.bin: %.asm
 	nasm -f bin -w+orphan-labels -o $@ $<
+
+include dev.make
