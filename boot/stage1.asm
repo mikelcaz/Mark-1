@@ -32,17 +32,25 @@ stage_1:
 	mov AH, 0x0E
 	int 0x10
 
-	mov SI, .hello
-	mov DL, 0x12
-	call print_string
-	call print_hex_b
+	; Now that it is possible to show errors,
+	; the boot drive number can be checked.
+	; 0x80 and 0x00 are the only expected values.
+	mov DL, [.boot_drive]
+	test DL, ~0x80
+	jz .it_seems_a_valid_drive_number
+	.not_a_valid_drive_number:
+		mov SI, .boot_drive_error
+		call print_string
+		call print_hex_b
+		jmp $
+	.it_seems_a_valid_drive_number:
 
 	jmp $
 
 ; It must be loaded at runtime.
 .boot_drive db 0x00
 
-.hello db 'Hello, World!', 0
+.boot_drive_error db "!BOOTDRIVE:", 0
 
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
