@@ -55,7 +55,7 @@ stage_1:
 	; [ES:BX] destination.
 	mov BX, [.s2_dest_segment]
 	mov ES, BX
-	xor BX, BX
+	mov BX, [.s2_dest_offset]
 
 	call load
 
@@ -79,13 +79,17 @@ stage_1:
 	mov AL, 'o'
 	int 0x10
 
-	jmp $
+	mov DL, [.boot_drive]
+	jmp far [.s2_dest]
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
 .s2_head db 0x00
 .s2_cylinder_and_sector dw 0x0002
-.s2_insectors db 0x00 ; 0x02
-.s2_dest_segment dw 0x0050
+.s2_insectors db 0x01
+.s2_dest:
+	; Order matters.
+	.s2_dest_offset dw 0x0000
+	.s2_dest_segment dw 0x0050
 
 .boot_drive_error db "!BOOTDRIVE:", 0
 .drive_error db "!DRIVE:", 0

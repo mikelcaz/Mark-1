@@ -4,6 +4,7 @@ TARG=mark1
 
 LAYOUT=\
 	boot/stage1.bin\
+	boot/stage2.bin\
 
 all: $(TARG).img
 
