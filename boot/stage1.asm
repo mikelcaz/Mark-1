@@ -45,16 +45,55 @@ stage_1:
 		jmp $
 	.it_seems_a_valid_drive_number:
 
+	; Second stage load.
+
+	mov DL, [.boot_drive]
+	mov DH, [.s2_head]
+	mov CX, [.s2_cylinder_and_sector]
+	mov AL, [.s2_insectors]
+
+	; [ES:BX] destination.
+	mov BX, [.s2_dest_segment]
+	mov ES, BX
+	xor BX, BX
+
+	call load
+
+	mov BX, 0x0000 ; xor does not preserve CF.
+
+	jnc .successful_load
+	.load_failed:
+		mov DX, AX
+		mov AH, 0x0E
+		mov SI, .drive_error
+		call print_string
+		rol DX, 8
+		call print_hex_b
+		rol DX, 8
+		call print_hex_b
+		jmp $
+
+	.successful_load:
+
+	mov AH, 0x0E
+	mov AL, 'o'
+	int 0x10
+
 	jmp $
 
-; It must be loaded at runtime.
-.boot_drive db 0x00
+.boot_drive db 0x00 ; It must be loaded at runtime.
+.s2_head db 0x00
+.s2_cylinder_and_sector dw 0x0002
+.s2_insectors db 0x00 ; 0x02
+.s2_dest_segment dw 0x0050
 
 .boot_drive_error db "!BOOTDRIVE:", 0
+.drive_error db "!DRIVE:", 0
 
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
+%include 'boot/load_16.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
