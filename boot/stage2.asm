@@ -63,6 +63,19 @@ stage_2:
 	mov AL, 't'
 	int 0x10
 
+	; Copying the payload from stage 1.
+	; Possible optimization: use movsd instead.
+	mov CX, 0x07C0
+	mov DS, CX
+	mov SI, 0x200 - 72
+
+	mov CX, CS
+	mov ES, CX
+	mov DI, s2_mbr_payload
+
+	mov CX, 70 / 2
+	rep movsw
+
 	jmp $
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
@@ -72,6 +85,21 @@ stage_2:
 
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
+
+times (0x200 - 74) - ($ - $$) nop
+
+; All this must be loaded at runtime.
+s2_mbr_payload:
+
+; Disk signature.
+	.signature dd 0x7ADAEDFE ; 0xFEEDDA7A.
+	.reserved dw 0xEDFE ; FEED.
+
+; Partition table.
+	.part_1 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
+	.part_2 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
+	.part_3 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
+	.part_4 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
 
 times (s2_sectors * 0x200 - 4) - ($ - $$) nop
 s2_magic_number dd 0x1DACED1C ; 0x1CEDAC1D
