@@ -47,11 +47,28 @@ stage_2:
 		jmp $
 	.it_seems_a_valid_drive_number:
 
+	; Checking that the whole stage was loaded.
+	cmp dword [s2_magic_number], 0x1DACED1C
+	je .ready
+	.incomplete_load:
+		xor BX, BX
+		mov AH, 0x0E
+		mov SI, .incomplete_error
+		call print_string
+		jmp $
+	.ready:
+
+	xor BX, BX
+	mov AH, 0x0E
+	mov AL, 't'
+	int 0x10
+
 	jmp $
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
 
 .boot_drive_error db "!BOOTDRIVE:", 0
+.incomplete_error db "!INCOMPLETE", 0
 
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
