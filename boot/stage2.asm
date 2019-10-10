@@ -45,6 +45,9 @@ stage_2:
 
 	call .check_magic
 
+	; TODO: Remove when done.
+	jmp .softreset
+
 	; The MBR should be at 0x7C00 already.
 	call .copy_mbr_payload
 
@@ -52,9 +55,6 @@ stage_2:
 	mov AH, 0x0E
 	mov AL, 't'
 	int 0x10
-
-	; TODO: Remove when done.
-	jmp .softreset
 
 	jmp $
 
@@ -73,7 +73,36 @@ stage_2:
 
 	call enforce_tty_video_mode
 	call .check_magic
-	; TODO: reload the MBR.
+
+	; MBR reload.
+
+	mov DL, [.boot_drive]
+	mov DH, 0x00
+	mov CX, 0x0001
+	mov AL, 0x01
+
+	; [ES:BX] destination.
+	mov BX, 0x07C0
+	mov ES, BX
+	mov BX, 0x0000
+
+	call load
+
+	mov BX, 0x0000 ; xor does not preserve CF.
+
+	jnc .successful_load
+	.load_failed:
+		mov DX, AX
+		mov AH, 0x0E
+		mov SI, .drive_error
+		call print_string
+		rol DX, 8
+		call print_hex_b
+		rol DX, 8
+		call print_hex_b
+		jmp $
+
+	.successful_load:
 	;call .copy_mbr_payload
 
 	; TODO: Remove when done.
@@ -87,6 +116,7 @@ stage_2:
 .boot_drive db 0x00 ; It must be loaded at runtime.
 
 .boot_drive_error db "!BOOTDRIVE:", 0
+.drive_error db "!DRIVE:", 0
 .incomplete_error db "!INCOMPLETE", 0
 
 .check_magic:
@@ -120,6 +150,7 @@ stage_2:
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
+%include 'boot/load_16.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
