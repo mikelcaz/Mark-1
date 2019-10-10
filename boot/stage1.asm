@@ -13,17 +13,17 @@ stage_1:
 	jmp 0x07C0:.after_canonization
 	.after_canonization:
 
+	; Stack setup for stage 1.
+	mov BP, .stack_segment
+	mov SS, BP
+	mov SP, 0xFFFF
+
 	; Data segment initialization.
 	mov AX, 0x07C0
 	mov DS, AX
 
 	; BIOS stores the boot drive in this register.
 	mov [.boot_drive], DL
-
-	; Stack setup for stage 1.
-	mov BP, .stack_segment
-	mov SS, BP
-	mov SP, 0xFFFF
 
 	cld
 	xor BX, BX
