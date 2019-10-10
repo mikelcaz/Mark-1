@@ -45,9 +45,6 @@ stage_2:
 
 	call .check_magic
 
-	; TODO: Remove when done.
-	jmp .softreset
-
 	; The MBR should be at 0x7C00 already.
 	call .copy_mbr_payload
 
@@ -56,7 +53,7 @@ stage_2:
 	mov AL, 't'
 	int 0x10
 
-	jmp $
+	jmp .bootmonitor
 
 .softreset:
 	; Stack setup for stage 2.
@@ -103,14 +100,11 @@ stage_2:
 		jmp $
 
 	.successful_load:
-	;call .copy_mbr_payload
+	call .copy_mbr_payload
 
-	; TODO: Remove when done.
-	xor BX, BX
-	mov AH, 0x0E
-	mov AL, 'X'
-	int 0x10
+	jmp .bootmonitor
 
+.bootmonitor:
 	jmp $
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
