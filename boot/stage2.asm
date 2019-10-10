@@ -11,33 +11,29 @@ stage_2:
 	; (i.e., 64 KiB from 0x70000 to 0x80000 - 1)
 	; before the EBDA (Extended BIOS Data Area).
 	.stack_segment EQU 0x7000
-.begin:
-	; For the time being,
-	; the TTY video mode is taken for granted.
 
-	; Data segment initialization.
-	mov AX, CS
-	mov DS, AX
+.entrypoints:
+	jmp short .softreset
+	times (1 * 0x2) - ($ - $$) nop
+	jmp short .bootstrap
+	times (2 * 0x2) - ($ - $$) nop
+
+.bootstrap:
+	; The stack was set up by the first stage.
 
 	xor BX, BX
 	mov AX, 0x0E00 + 'o'
 	int 0x10
 
+	; Data segment initialization.
+	mov AX, CS
+	mov DS, AX
+
 	; BIOS stores the boot drive in this register.
 	mov [.boot_drive], DL
 
-	; Stack setup for stage 2.
-	mov BP, .stack_segment
-	mov SS, BP
-	mov SP, 0xFFFF
+	; DF flag was properly set by the first stage.
 
-	cld
-	xor BX, BX
-
-	; Now that it is possible to show errors,
-	; the boot drive number can be checked.
-	; 0x80 and 0x00 are the only expected values.
-	mov DL, [.boot_drive]
 	test DL, ~0x80
 	jz .it_seems_a_valid_drive_number
 	.not_a_valid_drive_number:
@@ -48,22 +44,18 @@ stage_2:
 	.it_seems_a_valid_drive_number:
 
 	; Checking that the whole stage was loaded.
-	cmp dword [s2_magic_number], 0x1DACED1C
+	cmp word [s2_magic_number], 0xABD5
 	je .ready
 	.incomplete_load:
-		xor BX, BX
+		; xor BX, BX
 		mov AH, 0x0E
 		mov SI, .incomplete_error
 		call print_string
 		jmp $
 	.ready:
 
-	xor BX, BX
-	mov AH, 0x0E
-	mov AL, 't'
-	int 0x10
-
 	; Copying the payload from stage 1.
+	; (The MBR would have to be reloaded in soft reset mode.)
 	; Possible optimization: use movsd instead.
 	mov CX, 0x07C0
 	mov DS, CX
@@ -76,6 +68,14 @@ stage_2:
 	mov CX, 70 / 2
 	rep movsw
 
+	xor BX, BX
+	mov AH, 0x0E
+	mov AL, 't'
+	int 0x10
+
+	jmp $
+
+.softreset:
 	jmp $
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
@@ -86,7 +86,7 @@ stage_2:
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
 
-times (0x200 - 74) - ($ - $$) nop
+times (0x200 - 72) - ($ - $$) nop
 
 ; All this must be loaded at runtime.
 s2_mbr_payload:
@@ -101,5 +101,8 @@ s2_mbr_payload:
 	.part_3 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
 	.part_4 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
 
-times (s2_sectors * 0x200 - 4) - ($ - $$) nop
-s2_magic_number dd 0x1DACED1C ; 0x1CEDAC1D
+times (0x200 - 2) - ($ - $$) nop
+second_sector:
+
+times (s2_sectors * 0x200 - 2) - ($ - $$) nop
+s2_magic_number dw 0xABD5 ; 1010 101[1 1]101 0101

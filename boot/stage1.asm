@@ -79,6 +79,13 @@ stage_1:
 	mov AL, 'o'
 	int 0x10
 
+	; The second stage starts with a table of entry points.
+	; Each entry in the table takes 2 bytes (short jmp).
+	; The bootstrap entry point is the second in the table.
+	mov BX, [.s2_dest_offset]
+	add BX, 1 * 0x2
+	mov [.s2_dest_offset], BX
+
 	mov DL, [.boot_drive]
 	jmp far [.s2_dest]
 
@@ -114,4 +121,4 @@ mbr_payload:
 	.part_4 dq 0x0000000000000000, 0x0000000000000000
 
 times (0x200 - 2) - ($ - $$) nop
-dw 0xAA55
+dw 0xAA55 ; 1010 101[0 0]101 0101

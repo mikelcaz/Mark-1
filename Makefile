@@ -15,7 +15,7 @@ nuke: clean
 	@rm -vf $(TARG).img
 
 $(TARG).img: $(TARG).bin
-	dd if=/dev/zero of=$@.tmp bs=1k count=1440
+	dd if=/dev/zero of=$@.tmp bs=1K count=1440
 	dd conv=notrunc if=$< of=$@.tmp
 	@mv -v $@.tmp $@
 
