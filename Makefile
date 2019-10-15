@@ -1,28 +1,25 @@
 .PHONY: all clean nuke
 
-TARG=mark1
+NAME=mark1
 
-LAYOUT=\
+TARG=\
+	boot.img\
+#	$(NAME).img\
+
+BOOT_LAYOUT=\
 	boot/stage1.bin\
 	boot/stage2.bin\
 
-all: $(TARG).img
+all: $(TARG)
 
 clean:
-	@rm -vf $(TARG).bin $(TARG).tmp $(LAYOUT)
+	@rm -vf $(BOOT_LAYOUT)
 
 nuke: clean
-	@rm -vf $(TARG).img
+	@rm -vf $(TARG)
 
-$(TARG).img: $(TARG).bin
-	dd if=/dev/zero of=$@.tmp bs=1K count=1440
-	dd conv=notrunc if=$< of=$@.tmp
-	@mv -v $@.tmp $@
-
-$(TARG).bin: $(LAYOUT)
+boot.img: $(BOOT_LAYOUT)
 	cat $^ > $@
 
 %.bin: %.asm
 	nasm -f bin -w+orphan-labels -o $@ $<
-
-include dev.make
