@@ -50,10 +50,11 @@ stage_2:
 
 	xor BX, BX
 	mov AH, 0x0E
-	mov AL, 't'
-	int 0x10
+	mov SI, .end_boot_msg
+	call print_string
 
 	jmp .bootmonitor
+.end_boot_msg db 't', 0xD, 0xA, 0
 
 .softreset:
 	; Stack setup for stage 2.
