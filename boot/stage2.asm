@@ -71,7 +71,7 @@ stage_2:
 	call enforce_tty_video_mode
 	call .check_magic
 
-	; MBR reload.
+	; MBR reloading.
 
 	mov DL, [.boot_drive]
 	mov DH, 0x00
@@ -129,6 +129,9 @@ stage_2:
 	; Copying the MBR payload from its copy at 0x7C00.
 	; The MBR has to be reloaded in soft reset mode,
 	; but it is already there when coming from stage 1.
+	push AX
+	mov AX, DS
+
 	mov CX, 0x07C0
 	mov DS, CX
 	mov SI, 0x200 - 72
@@ -140,6 +143,10 @@ stage_2:
 	mov CX, (70 - 2) / 4
 	rep movsd
 	movsw ; Copies the last two bytes.
+
+	mov DS, AX
+	pop AX
+	ret
 
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
