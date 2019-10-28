@@ -1,24 +1,28 @@
 .PHONY: all clean nuke
 
-NAME=mark1
-
 TARG=\
 	boot.img\
-#	$(NAME).img\
+	kernel.img\
 
 BOOT_LAYOUT=\
 	boot/stage1.bin\
 	boot/stage2.bin\
 
+KERNEL_LAYOUT=\
+	kernel/entry.bin\
+
 all: $(TARG)
 
 clean:
-	@rm -vf $(BOOT_LAYOUT)
+	@rm -vf $(BOOT_LAYOUT) $(KERNEL_LAYOUT)
 
 nuke: clean
 	@rm -vf $(TARG)
 
 boot.img: $(BOOT_LAYOUT)
+	cat $^ > $@
+
+kernel.img: $(KERNEL_LAYOUT)
 	cat $^ > $@
 
 %.bin: %.asm

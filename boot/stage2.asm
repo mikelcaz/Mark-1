@@ -4,7 +4,7 @@
 
 ; The first stage must load as many sectors
 ; as the size of this one.
-s2_sectors EQU 0x01
+s2_sectors EQU 0x03
 
 stage_2:
 	; The stack spans over the last _ensured_ free segment
@@ -43,17 +43,17 @@ stage_2:
 		jmp $
 	.it_seems_a_valid_drive_number:
 
-	call .check_magic
+	call check_magic
 
 	; The MBR should be at 0x7C00 already.
-	call .copy_mbr_payload
+	call copy_mbr_payload
 
 	xor BX, BX
 	mov AH, 0x0E
 	mov SI, .end_boot_msg
 	call print_string
 
-	jmp .bootmonitor
+	jmp bootmonitor
 .end_boot_msg db 't', 0xD, 0xA, 0
 
 .softreset:
@@ -70,7 +70,7 @@ stage_2:
 	xor BX, BX
 
 	call enforce_tty_video_mode
-	call .check_magic
+	call check_magic
 
 	; MBR reloading.
 
@@ -84,49 +84,35 @@ stage_2:
 	mov ES, BX
 	mov BX, 0x0000
 
-	call load
+	call load_ck
+	call copy_mbr_payload
 
-	mov BX, 0x0000 ; xor does not preserve CF.
-
-	jnc .successful_load
-	.load_failed:
-		mov DX, AX
-		mov AH, 0x0E
-		mov SI, .drive_error
-		call print_string
-		rol DX, 8
-		call print_hex_b
-		rol DX, 8
-		call print_hex_b
-		jmp $
-
-	.successful_load:
-	call .copy_mbr_payload
-
-	jmp .bootmonitor
-
-.bootmonitor:
-	jmp $
+	jmp bootmonitor
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
 
 .boot_drive_error db "!BOOTDRIVE:", 0
-.drive_error db "!DRIVE:", 0
 .incomplete_error db "!INCOMPLETE", 0
 
-.check_magic:
+%include 'boot/video_16.asm'
+%include 'boot/print_16/hex.asm'
+%include 'boot/print_16/string.asm'
+%include 'boot/load_16.asm'
+%include 'boot/load_ck_16.asm'
+
+check_magic:
 	; Checking that the whole stage was loaded/overwritten.
 	cmp word [s2_magic_number], 0xABD5
 	je .ready
 	.incomplete_load:
 		mov AH, 0x0E
-		mov SI, .incomplete_error
+		mov SI, stage_2.incomplete_error
 		call print_string
 		jmp $
 	.ready:
 	ret
 
-.copy_mbr_payload:
+copy_mbr_payload:
 	; Copying the MBR payload from its copy at 0x7C00.
 	; The MBR has to be reloaded in soft reset mode,
 	; but it is already there when coming from stage 1.
@@ -149,10 +135,15 @@ stage_2:
 	pop AX
 	ret
 
-%include 'boot/video_16.asm'
-%include 'boot/print_16/hex.asm'
-%include 'boot/print_16/string.asm'
-%include 'boot/load_16.asm'
+zero_sized:
+	mov SI, bootmonitor.f7_zero_size_error
+	jmp print_fatal
+
+print_fatal:
+	mov AH, 0x0E
+	xor BX, BX
+	call print_string
+	jmp $
 
 times (0x200 - 72) - ($ - $$) nop
 
@@ -160,17 +151,204 @@ times (0x200 - 72) - ($ - $$) nop
 s2_mbr_payload:
 
 ; Disk signature.
-	.signature dd 0x7ADAEDFE ; 0xFEEDDA7A.
-	.reserved dw 0xEDFE ; FEED.
+	.signature dd 0x00000000
+	.reserved dw 0x0000
 
 ; Partition table.
-	.part_1 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
-	.part_2 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
-	.part_3 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
-	.part_4 dq 0x7ADAEDFE7ADAEDFE, 0x7ADAEDFE7ADAEDFE
+	.part_1 dq 0x000000000000000, 0x000000000000000
+	.part_2 dq 0x000000000000000, 0x000000000000000
+	.part_3 dq 0x000000000000000, 0x000000000000000
+	.part_4 dq 0x000000000000000, 0x000000000000000
 
 times (0x200 - 2) - ($ - $$) nop
-second_sector:
+dw 0x0000
+
+%include 'boot/lba_chs.asm'
+
+bootmonitor:
+	.boot_indicator EQU +0
+	.type_descriptor EQU +4
+	.starting_sector EQU +8
+	.part_size EQU +12
+
+	.f7_first EQU +8
+	.f7_size EQU +12
+	.f7_padding EQU +16
+	.f7_slots_1 EQU +19
+	.f7_bitmap EQU +22
+
+.begin:
+	mov CX, 0
+	mov BX, s2_mbr_payload.part_1
+
+.search_f7:
+	cmp CX, 4
+	mov SI, .f7_not_found_error
+	je print_fatal
+
+	cmp byte [BX + .type_descriptor], 0xF7
+	je .f7_found
+
+	inc CX
+	add BX, 16
+	jmp .search_f7
+
+.f7_found:
+	mov AX, [BX + .part_size]
+	cmp AX, 0
+	jne .non_zero_sized
+	mov AX, [BX + .part_size + 2]
+	cmp AX, 0
+	jne .non_zero_sized
+
+	jmp zero_sized
+
+.non_zero_sized:
+	mov AX, [BX + .starting_sector]
+	mov DX, [BX + .starting_sector + 2]
+
+	push BX
+
+	; F7h header loading.
+
+	call lba2chs
+	mov DL, [stage_2.boot_drive]
+	mov AL, 0x01
+
+	; [ES:BX] destination.
+	mov BX, 0x07C0
+	mov ES, BX
+	mov BX, 0x0000
+
+	call load_ck
+
+	pop BX
+
+	; Note the number of free sectors is not actually integer.
+	; The remainder is discarded here.
+	mov EAX, (stage_2.stack_segment - 0x50) * 0x10 / 0x200 - s2_sectors
+	cmp EAX, [ES:.f7_size]
+	jae .slots_fit_in_memory
+	mov SI, .f7_mem_oversize_error
+	call print_fatal
+.slots_fit_in_memory:
+
+	xor EDX, EDX
+	mov DX, [ES:.f7_padding]
+	add EDX, [ES:.f7_size] ; Every = Size + Padding
+	jc .overwrap
+	mov EAX, [ES:.f7_first]
+
+	xor CX, CX
+	mov CL, [ES:.f7_slots_1]
+	and CL, 0x0F
+	call .compute_padding
+
+	add EAX, [ES:.f7_size]
+	jc .overwrap
+
+	cmp EAX, [BX + .part_size]
+	jbe .size_ok
+	mov SI, .f7_part_oversize_error
+	call print_fatal
+
+.size_ok:
+	add EAX, [BX + .starting_sector]
+	jc .overwrap
+
+	xor AX, AX
+	mov AL, [ES:.f7_slots_1]
+	and AL, 0x0F
+	inc AX
+	xor CX, CX
+.find_first_active_slot:
+	mov DX, [ES:.f7_bitmap]
+	shr DX, CL
+	and DX, 0x1
+	jnz .found_active
+
+	inc CX
+	dec AX
+	jnz .find_first_active_slot
+
+	mov SI, .f7_no_active_slot_found
+	call print_fatal
+
+.found_active:
+.check_load_0:
+	xor AL, AL
+	cmp AL, [ES:.f7_size]
+	jb .check_load_255
+	mov SI, .load_0_error
+	call print_fatal
+.check_load_255:
+	mov AL, 0xFF
+	cmp AL, [ES:.f7_size]
+	jae .loadable_size
+	mov SI, .load_255_error
+	call print_fatal
+.loadable_size:
+	xor EDX, EDX
+	mov DX, [ES:.f7_padding]
+	add EDX, [ES:.f7_size] ; Every = Size + Padding
+	xor EAX, EAX
+	mov EAX, [ES:.f7_first]
+	call .compute_padding
+	add EAX, [BX + .starting_sector]
+
+	; Second stage load.
+
+	push EAX
+	pop AX
+	pop DX
+	call lba2chs
+	mov DL, [stage_2.boot_drive]
+	mov EAX, [ES:.f7_size]
+
+	; [ES:BX] destination.
+	mov BX, CS
+	add BX, s2_sectors * 0x20
+	mov ES, BX
+	xor BX, BX
+
+	call load_ck
+
+	mov [.kernel_dest_offset], BX
+	mov [.kernel_dest_segment], ES
+	jmp far [.kernel_dest]
+
+.compute_padding:
+	; CX must be set.
+	cmp CX, 0
+	je .compute_padding_skip
+	.compute_padding_loop:
+		add EAX, EDX
+		jc .overwrap
+		loop .compute_padding_loop
+	.compute_padding_skip:
+	ret
+
+.overwrap:
+	mov AH, 0x0E
+	mov SI, .overwrap_error
+	call print_string
+	jmp $
+
+.kernel_dest:
+	; Order matters.
+	.kernel_dest_offset dw 0x0000
+	.kernel_dest_segment dw 0x0000
+
+.overwrap_error db "Overwraps", 0
+.ok_msg db "ok", 0
+.load_0_error db "Cannot load 0 sectors", 0
+.load_255_error db "Cannot load more than 255 sectors", 0
+
+.f7_not_found_error db "Mark 1 partition not found", 0
+.f7_zero_size_error db "Mark 1 partition size is 0", 0
+.f7_mem_oversize_error db "Not enough safe memory for such slots", 0
+.f7_part_oversize_error db "Slots exceed the Mark 1 partition size", 0
+.f7_no_active_slot_found db "No active slot found", 0
 
 times (s2_sectors * 0x200 - 2) - ($ - $$) nop
 s2_magic_number dw 0xABD5 ; 1010 101[1 1]101 0101
