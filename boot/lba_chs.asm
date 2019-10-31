@@ -12,8 +12,11 @@ lba2chs:
 ;		0-5 = sector (in base 1).
 ;		6-7 = cylinder most significant bits (2/10).
 ;	CH = cylinder least significant bits (8/10).
-	HPC EQU 16
-	SPT EQU 63
+;
+; TODO: This should not be hardcoded
+;(but retrieving methods are very unreliable).
+	HPC EQU 2 ; 16
+	SPT EQU 18 ; 63
 	MAX_LBA EQU 0xFBFFF
 
 	push BP
