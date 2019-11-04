@@ -1,8 +1,11 @@
 [bits 16]
+[extern kmain]
 
+; The origin is at 'correction'. It is relevant for the 32-bit part.
+; However, the 16-bit part is reached as [XXXXh:0000h],
+; hence the need of accounting it.
 s2_sectors EQU 3
 correction EQU 0x0500 + s2_sectors * 0x200
-[org correction]
 
 jmp entry_16
 
@@ -55,8 +58,7 @@ entry_32:
 	mov SI, .msg_32_bit_mode
 	call print_string
 
-	call c_function
-
+	call kmain
 	jmp $
 
 .msg_32_bit_mode db '32-bit mode', 0
@@ -81,7 +83,3 @@ print_string:
 	pop AX
 	pop SI
 	ret
-
-times (0x200) - ($ - $$) nop
-
-c_function:

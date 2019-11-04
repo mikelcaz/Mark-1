@@ -9,10 +9,11 @@ BOOT_LAYOUT=\
 	boot/stage2.bin\
 
 KERNEL_LAYOUT=\
-	kernel32/entry.bin\
 	kernel32/kernel.bin\
 
+# The 'entry' point must go first.
 OKERNEL=\
+	kernel32/entry.o\
 	kernel32/kernel.o\
 
 all: $(TARG)
@@ -32,8 +33,11 @@ kernel.img: $(KERNEL_LAYOUT)
 %.bin: %.asm
 	nasm -f bin -w+orphan-labels -o $@ $<
 
-kernel32/kernel.bin: kernel32/kernel.o
-	$(XCC) $(XLDFLAGS) -Ttext 0x0D00 -o $@ $^ $(XLDLIBS)
+kernel32/kernel.bin: $(OKERNEL)
+	$(XCC) $(XLDFLAGS) -Ttext 0x0B00 -o $@ $^ $(XLDLIBS)
+
+%.o: %.asm
+	nasm -f elf -w+orphan-labels -o $@ $<
 
 %.o: %.c
 	$(XCC) $(XCFLAGS) -c -o $@ $<
