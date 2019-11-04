@@ -11,7 +11,7 @@ entry_32_addr:
 	.offset dw entry_32 ; Be careful with the offset!
 	.segment dw gdt.code_sel
 
-%include 'kernel/gdt.asm'
+%include 'kernel32/gdt.asm'
 
 entry_16:
 	mov AX, 0x0E00 + 'K'
@@ -55,6 +55,8 @@ entry_32:
 	mov SI, .msg_32_bit_mode
 	call print_string
 
+	call c_function
+
 	jmp $
 
 .msg_32_bit_mode db '32-bit mode', 0
@@ -79,3 +81,7 @@ print_string:
 	pop AX
 	pop SI
 	ret
+
+times (0x200) - ($ - $$) nop
+
+c_function:

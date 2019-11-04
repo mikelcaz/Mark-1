@@ -9,12 +9,16 @@ BOOT_LAYOUT=\
 	boot/stage2.bin\
 
 KERNEL_LAYOUT=\
-	kernel/entry.bin\
+	kernel32/entry.bin\
+	kernel32/kernel.bin\
+
+OKERNEL=\
+	kernel32/kernel.o\
 
 all: $(TARG)
 
 clean:
-	@rm -vf $(BOOT_LAYOUT) $(KERNEL_LAYOUT)
+	@rm -vf $(BOOT_LAYOUT) $(KERNEL_LAYOUT) $(OKERNEL)
 
 nuke: clean
 	@rm -vf $(TARG)
@@ -27,3 +31,14 @@ kernel.img: $(KERNEL_LAYOUT)
 
 %.bin: %.asm
 	nasm -f bin -w+orphan-labels -o $@ $<
+
+kernel32/kernel.bin: kernel32/kernel.o
+	$(XCC) $(XLDFLAGS) -Ttext 0x0D00 -o $@ $^ $(XLDLIBS)
+
+%.o: %.c
+	$(XCC) $(XCFLAGS) -c -o $@ $<
+
+XCC?=your-cross-gcc
+XCFLAGS=-ffreestanding -mno-red-zone
+XLDFLAGS=-nostdlib -Wl,--oformat,binary
+XLDLIBS=-lgcc
