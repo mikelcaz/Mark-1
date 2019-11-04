@@ -52,34 +52,5 @@ entry_32:
 	mov EBP, 0x70000
 	mov ESP, EBP
 
-	mov EDX, .video_mem + 2 * 80 * 24
-
-	mov AH, .blue_on_white
-	mov SI, .msg_32_bit_mode
-	call print_string
-
 	call kmain
 	jmp $
-
-.msg_32_bit_mode db '32-bit mode', 0
-
-print_string:
-; EDX = memory address
-; SI = message
-; AH = format
-; Mod: EDX
-	push SI
-	push AX
-
-	jmp .init
-	.loop:
-		mov [EDX], AX
-		add EDX, 2
-	.init:
-		lodsb
-		cmp AL, 0
-	jne .loop
-
-	pop AX
-	pop SI
-	ret
