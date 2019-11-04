@@ -32,6 +32,11 @@ stage_1:
 	mov AH, 0x0E
 	int 0x10
 
+	; Ensure blinking is disabled (favouring color intensity).
+	mov AX, 0x1003
+	mov BH, 0x0000 + 0x00
+	int 0x10
+
 	; Now that it is possible to show errors,
 	; the boot drive number can be checked.
 	; 0x80 and 0x00 are the only expected values.

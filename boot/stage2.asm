@@ -70,6 +70,10 @@ stage_2:
 	xor BX, BX
 
 	call enforce_tty_video_mode
+	; Ensure blinking is disabled (favouring color intensity).
+	mov AX, 0x1003
+	mov BH, 0x0000 + 0x00
+	int 0x10
 	call check_magic
 
 	; MBR reloading.
