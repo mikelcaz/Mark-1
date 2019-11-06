@@ -5,6 +5,8 @@ lba2chs:
 ; Arguments:
 ;	DX = LBA most significant bytes.
 ;	AX = LBA least significant bytes.
+;	BL = HPC-1
+;	CX[0-5] = SPT
 ; Returns:
 ;	CF flag set on error, clear on success.
 ;	DH = head.
@@ -13,10 +15,6 @@ lba2chs:
 ;		6-7 = cylinder most significant bits (2/10).
 ;	CH = cylinder least significant bits (8/10).
 ;
-; TODO: This should not be hardcoded
-;(but retrieving methods are very unreliable).
-	HPC EQU 2 ; 16
-	SPT EQU 18 ; 63
 	MAX_LBA EQU 0xFBFFF
 
 	push BP
@@ -25,6 +23,17 @@ lba2chs:
 	push AX
 
 	mov BP, SP
+	xor BH, BH
+	inc BX
+	and CX, 0x3F
+
+	; Precomputing HPC * SPT.
+	mov AX, CX
+	mul BX
+	push DX
+	push AX
+
+	push CX
 
 ;	C = LBA / (HPC * SPT);
 	mov EAX, [BP]
@@ -32,7 +41,7 @@ lba2chs:
 	ja .error
 
 	xor EDX, EDX
-	mov EBX, (HPC * SPT)
+	mov EBX, [BP - 4] ; HPC * SPT
 	div EBX
 
 	mov CH, AL
@@ -45,7 +54,8 @@ lba2chs:
 	mov EAX, [BP]
 	xor EDX, EDX
 
-	mov EBX, SPT
+	mov BX, [BP - 6] ; SPT
+	and EBX, 0x3F
 	div EBX
 
 	inc DL
@@ -53,13 +63,17 @@ lba2chs:
 
 	xor EDX, EDX
 
-	mov EBX, HPC
+	mov BX, [BP + 4] ; HPC
+	and EBX, 0xFF
+	inc EBX
 	div EBX
 
 	shl DX, 8
 	clc
 .return:
-	add SP, 4 ; Discard DX:AX
+	; Discard SPT, (HPC * SPT) and DX:AX.
+	add SP, 2 + 2 * 4
+
 	pop BX
 	pop BP
 	ret

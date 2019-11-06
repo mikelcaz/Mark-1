@@ -231,6 +231,8 @@ bootmonitor:
 
 	; F7h header loading.
 
+	mov BL, [stage_2.heads]
+	mov CX, [stage_2.sectors_and_cylinders]
 	call lba2chs
 	mov DL, [stage_2.boot_drive]
 	mov AL, 0x01
@@ -319,6 +321,8 @@ bootmonitor:
 	push EAX
 	pop AX
 	pop DX
+	mov BL, [stage_2.heads]
+	mov CX, [stage_2.sectors_and_cylinders]
 	call lba2chs
 	mov DL, [stage_2.boot_drive]
 	mov EAX, [ES:.f7_size]
