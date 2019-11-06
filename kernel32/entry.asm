@@ -1,13 +1,16 @@
 [bits 16]
 [extern kmain]
 
+global _start
+
 ; The origin is at 'correction'. It is relevant for the 32-bit part.
 ; However, the 16-bit part is reached as [XXXXh:0000h],
 ; hence the need of accounting it.
 s2_sectors EQU 3
 correction EQU 0x0500 + s2_sectors * 0x200
 
-jmp entry_16
+_start:
+	jmp entry_16
 
 entry_32_addr:
 	; Order matters.
