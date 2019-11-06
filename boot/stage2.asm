@@ -244,6 +244,17 @@ bootmonitor:
 
 	call load_ck
 
+	mov SI, .f7_signature
+	xor DI, DI
+	mov CX, .f7_signature_size
+
+.check_signature:
+	lodsb
+	cmp AL, [ES:DI]
+	jne .no_signature
+	inc DI
+	loop .check_signature
+
 	pop BX
 
 	; Note the number of free sectors is not actually integer.
@@ -350,11 +361,13 @@ bootmonitor:
 	.compute_padding_skip:
 	ret
 
+.no_signature:
+	mov SI, .f7_header_not_found_error
+	call print_fatal
+
 .overwrap:
-	mov AH, 0x0E
 	mov SI, .overwrap_error
-	call print_string
-	jmp $
+	call print_fatal
 
 .kernel_dest:
 	; Order matters.
@@ -368,9 +381,13 @@ bootmonitor:
 
 .f7_not_found_error db "Mark 1 partition not found", 0
 .f7_zero_size_error db "Mark 1 partition size is 0", 0
+.f7_header_not_found_error db "Mark 1 header not found", 0
 .f7_mem_oversize_error db "Not enough safe memory for such slots", 0
 .f7_part_oversize_error db "Slots exceed the Mark 1 partition size", 0
 .f7_no_active_slot_found db "No active slot found", 0
+
+.f7_signature_size EQU 8
+.f7_signature db 0xF7, 0x00, "SYSIMG"
 
 times (s2_sectors * 0x200 - 2) - ($ - $$) nop
 s2_magic_number dw 0xABD5 ; 1010 101[1 1]101 0101
