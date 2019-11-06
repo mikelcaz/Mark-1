@@ -48,11 +48,23 @@ stage_2:
 	; The MBR should be at 0x7C00 already.
 	call copy_mbr_payload
 
+	; Retrieving drive geometry for further use.
+	mov DL, [.boot_drive]
+	call drive_geom
+	jc .drive_geom_failure
+	mov [.heads], DH
+	mov [.sectors_and_cylinders], CX
+
+	xor BX, BX
 	mov AH, 0x0E
 	mov SI, .end_boot_msg
 	call print_string
 
 	jmp bootmonitor
+.drive_geom_failure:
+	mov SI, .drive_geom_error
+	call print_fatal
+
 .end_boot_msg db 't', 0xD, 0xA, 0
 
 .softreset:
@@ -93,15 +105,20 @@ stage_2:
 	jmp bootmonitor
 
 .boot_drive db 0x00 ; It must be loaded at runtime.
+; Boot drive geometry
+.heads db 0x00
+.sectors_and_cylinders dw 0x0000
 
 .boot_drive_error db "!BOOTDRIVE:", 0
 .incomplete_error db "!INCOMPLETE", 0
+.drive_geom_error db "!DRIVE_GEOM", 0
 
 %include 'boot/video_16.asm'
 %include 'boot/print_16/hex.asm'
 %include 'boot/print_16/string.asm'
 %include 'boot/load_16.asm'
 %include 'boot/load_ck_16.asm'
+%include 'boot/drive_geom.asm'
 
 check_magic:
 	; Checking that the whole stage was loaded/overwritten.
