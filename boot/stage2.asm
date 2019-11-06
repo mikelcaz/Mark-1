@@ -48,7 +48,6 @@ stage_2:
 	; The MBR should be at 0x7C00 already.
 	call copy_mbr_payload
 
-	xor BX, BX
 	mov AH, 0x0E
 	mov SI, .end_boot_msg
 	call print_string
@@ -299,8 +298,6 @@ bootmonitor:
 	mov EAX, [ES:.f7_first]
 	call .compute_padding
 	add EAX, [BX + .starting_sector]
-
-	; Second stage load.
 
 	push EAX
 	pop AX
