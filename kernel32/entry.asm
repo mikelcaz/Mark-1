@@ -44,12 +44,12 @@ entry_32:
 	.white_on_black EQU 0x07
 	.blue_on_white EQU 0xF9
 .begin:
-	mov AX, gdt.data_sel
-	mov DS, AX
-	mov ES, AX
-	mov FS, AX
-	mov GS, AX
-	mov SS, AX
+	mov EAX, gdt.data_sel
+	mov DS, EAX
+	mov ES, EAX
+	mov FS, EAX
+	mov GS, EAX
+	mov SS, EAX
 
 	; TODO: Limit the stack growing in the GDT.
 	mov EBP, 0x70000
