@@ -1,6 +1,8 @@
 [bits 16]
 [extern kmain]
 
+align 4
+
 global _start
 
 ; The origin is at 'correction'. It is relevant for the 32-bit part.
