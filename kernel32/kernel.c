@@ -1,6 +1,5 @@
 #include <stddef.h>
-
-typedef unsigned char uchar;
+#include "u.h"
 
 size_t print_to_video_mem(size_t from, char const *msg, uchar fmt);
 
