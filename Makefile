@@ -42,7 +42,8 @@ kernel32/kernel.bin: $(OKERNEL)
 %.o: %.c
 	$(XCC) $(XCFLAGS) -c -o $@ $<
 
+CFLAGS=-Wall -Wextra -pedantic
 XCC?=your-cross-gcc
-XCFLAGS=-ffreestanding -mno-red-zone
+XCFLAGS=-ffreestanding -mno-red-zone $(CFLAGS)
 XLDFLAGS=-nostdlib -Wl,--oformat,binary
 XLDLIBS=-lgcc
