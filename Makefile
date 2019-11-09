@@ -18,6 +18,8 @@ OKERNEL=\
 	kernel/32/libcmin.a\
 
 OLIBCMIN=\
+	kernel/32/string.o\
+	kernel/32/strings.o\
 
 all: $(TARG)
 
