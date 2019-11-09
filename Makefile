@@ -9,17 +9,20 @@ BOOT_LAYOUT=\
 	boot/stage2.bin\
 
 KERNEL_LAYOUT=\
-	kernel32/kernel.bin\
+	kernel/32/kernel.bin\
 
 # The 'entry' point must go first.
 OKERNEL=\
-	kernel32/entry.o\
-	kernel32/kernel.o\
+	kernel/32/entry.o\
+	kernel/32/kernel.o\
+	kernel/32/libcmin.a\
+
+OLIBCMIN=\
 
 all: $(TARG)
 
 clean:
-	@rm -vf $(BOOT_LAYOUT) $(KERNEL_LAYOUT) $(OKERNEL)
+	@rm -vf $(BOOT_LAYOUT) $(KERNEL_LAYOUT) $(OKERNEL) $(OLIBCMIN)
 
 nuke: clean
 	@rm -vf $(TARG)
@@ -33,14 +36,20 @@ kernel.img: $(KERNEL_LAYOUT)
 %.bin: %.asm
 	nasm -f bin -w+orphan-labels -o $@ $<
 
-kernel32/kernel.bin: $(OKERNEL)
+kernel/32/kernel.bin: $(OKERNEL)
 	$(XCC) $(XLDFLAGS) -Ttext 0x0B00 -o $@ $^ $(XLDLIBS)
+
+kernel/32/libcmin.a: $(OLIBCMIN)
+	ar crsv $@ $^
 
 %.o: %.asm
 	nasm -f elf -w+orphan-labels -o $@ $<
 
+kernel/32/%.o: libcmin/%.c
+	$(XCC) $(XCFLAGS) -Ilibcmin/include -c -o $@ $<
+
 %.o: %.c
-	$(XCC) $(XCFLAGS) -c -o $@ $<
+	$(XCC) $(XCFLAGS) -Ikernel/include -Ilibcmin/include -c -o $@ $<
 
 CFLAGS=-Wall -Wextra -pedantic
 XCC?=your-cross-gcc

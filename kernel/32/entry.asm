@@ -19,7 +19,7 @@ entry_32_addr:
 	.offset dw entry_32 ; Be careful with the offset!
 	.segment dw gdt.code_sel
 
-%include 'kernel32/gdt.asm'
+%include 'kernel/32/gdt.asm'
 
 entry_16:
 	mov AX, 0x0E00 + 'K'
