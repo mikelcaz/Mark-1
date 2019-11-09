@@ -16,6 +16,7 @@ OKERNEL=\
 	kernel/32/entry.o\
 	kernel/32/kernel.o\
 	kernel/32/libcmin.a\
+	kernel/drivers/io_b.o\
 
 OLIBCMIN=\
 	kernel/32/string.o\
@@ -54,6 +55,7 @@ kernel/32/%.o: libcmin/%.c
 	$(XCC) $(XCFLAGS) -Ikernel/include -Ilibcmin/include -c -o $@ $<
 
 CFLAGS=-Wall -Wextra -pedantic
+
 XCC?=your-cross-gcc
 XCFLAGS=-ffreestanding -mno-red-zone $(CFLAGS)
 XLDFLAGS=-nostdlib -Wl,--oformat,binary
