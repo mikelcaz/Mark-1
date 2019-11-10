@@ -42,9 +42,6 @@ entry_16:
 [bits 32]
 
 entry_32:
-	.video_mem EQU 0xB8000
-	.white_on_black EQU 0x07
-	.blue_on_white EQU 0xF9
 .begin:
 	mov EAX, gdt.data_sel
 	mov DS, EAX
@@ -54,8 +51,7 @@ entry_32:
 	mov SS, EAX
 
 	; TODO: Limit the stack growing in the GDT.
-	mov EBP, 0x70000
-	mov ESP, EBP
+	mov ESP, 0x70000
 
 	call kmain
 	jmp $
