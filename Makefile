@@ -11,7 +11,6 @@ BOOT_LAYOUT=\
 KERNEL_LAYOUT=\
 	kernel/32/kernel.bin\
 
-# The 'entry' point must go first.
 OKERNEL=\
 	kernel/32/entry.o\
 	kernel/32/kernel.o\
@@ -41,7 +40,7 @@ kernel.img: $(KERNEL_LAYOUT)
 	nasm -f bin -w+orphan-labels -o $@ $<
 
 kernel/32/kernel.bin: $(OKERNEL)
-	$(XCC) $(XLDFLAGS) -Ttext 0x0B00 -o $@ $^ $(XLDLIBS)
+	$(XCC) $(XLDFLAGS) -T kernel/32/link.ld -o $@ $^ $(XLDLIBS)
 
 kernel/32/libcmin.a: $(OLIBCMIN)
 	ar crsv $@ $^
@@ -59,5 +58,5 @@ CFLAGS=-Wall -Wextra -pedantic
 
 XCC?=your-cross-gcc
 XCFLAGS=-ffreestanding -mno-red-zone $(CFLAGS)
-XLDFLAGS=-nostdlib -Wl,--oformat,binary
+XLDFLAGS=-nostdlib
 XLDLIBS=-lgcc
