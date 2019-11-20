@@ -21,7 +21,7 @@ frmbuf_scanlines(uint_fast8_t first, uint_fast8_t last)
 }
 
 void
-frmbuf_hide()
+frmbuf_hide(void)
 {
 	outb(0x3D4, 0x0A);
 	outb(0x3D5, 0x20);
@@ -40,7 +40,7 @@ frmbuf_goto(uint_fast16_t to)
 }
 
 void
-frmbuf_nl()
+frmbuf_nl(void)
 {
 	uint_fast16_t at = frmbuf_at();
 	uint_fast16_t line = at / fb_cols + 1;
@@ -52,7 +52,7 @@ frmbuf_nl()
 }
 
 uint_fast16_t
-frmbuf_at()
+frmbuf_at(void)
 {
 	uint_fast16_t to;
 

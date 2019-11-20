@@ -54,7 +54,7 @@ kernel/32/%.o: libcmin/%.c
 %.o: %.c
 	$(XCC) $(XCFLAGS) -Ikernel/include -Ilibcmin/include -c -o $@ $<
 
-CFLAGS=-Wall -Wextra -pedantic
+CFLAGS=-Wall -Wextra -pedantic -Wstrict-prototypes
 
 XCC?=your-cross-gcc
 XCFLAGS=-ffreestanding -mno-red-zone $(CFLAGS)
