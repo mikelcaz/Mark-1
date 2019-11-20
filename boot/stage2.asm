@@ -4,7 +4,7 @@
 
 ; The first stage must load as many sectors
 ; as the size of this one.
-s2_sectors EQU 0x03
+s2_sectors EQU 0x04
 
 stage_2:
 	; The stack spans over the last _ensured_ free segment
@@ -345,7 +345,6 @@ bootmonitor:
 	xor BX, BX
 
 	call load_ck
-
 	mov [.kernel_dest_offset], BX
 	mov [.kernel_dest_segment], ES
 	jmp far [.kernel_dest]

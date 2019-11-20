@@ -8,7 +8,7 @@ global _start
 ; The origin is at 'correction'. It is relevant for the 32-bit part.
 ; However, the 16-bit part is reached as [XXXXh:0000h],
 ; hence the need of accounting it.
-s2_sectors EQU 3
+s2_sectors EQU 4
 correction EQU 0x0500 + s2_sectors * 0x200
 
 _start:

@@ -82,7 +82,7 @@ stage_1:
 .boot_drive db 0x00 ; It must be loaded at runtime.
 .s2_head db 0x00
 .s2_cylinder_and_sector dw 0x0002
-.s2_insectors db 0x03
+.s2_insectors db 0x04
 .s2_dest:
 	; Order matters.
 	.s2_dest_offset dw 0x0000
