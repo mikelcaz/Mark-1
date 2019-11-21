@@ -6,53 +6,16 @@
 #include <drivers/io_b.h>
 #include <string.h>
 
-static uchar * const video_mem = (uchar *)0xB8000;
-static size_t const fb_cols = 80;
-static size_t const fb_rows = 25;
-static size_t const fb_size = fb_cols * fb_rows;
+#define VideoMem ((uchar *)0xB8000)
+#define Columns 80
+#define Rows 25
+#define Cells (Columns * Rows)
 
-void
-frmbuf_scanlines(uint_fast8_t first, uint_fast8_t last)
-{
-	outb(0x3D4, 0x0A);
-	outb(0x3D5, (inb(0x3D5) & 0xC0) | first);
-	outb(0x3D4, 0x0B);
-	outb(0x3D5, (inb(0x3D5) & 0xE0) | last);
-}
-
-void
-frmbuf_hide(void)
-{
-	outb(0x3D4, 0x0A);
-	outb(0x3D5, 0x20);
-}
-
-void
-frmbuf_goto(uint_fast16_t to)
-{
-	if (fb_size <= to)
-		return;
-
-	outb(0x3D4, 0x0F);
-	outb(0x3D5, to & 0xFF);
-	outb(0x3D4, 0x0E);
-	outb(0x3D5, to >> 8);
-}
-
-void
-frmbuf_nl(void)
-{
-	uint_fast16_t at = frmbuf_at();
-	uint_fast16_t line = at / fb_cols + 1;
-	if (fb_rows <= line) {
-		frmbuf_scroll(1, 0x07);
-		--line;
-	}
-	frmbuf_goto(line * fb_cols);
-}
+uint_fast8_t fb_default_color = 0x07;
+uint_fast8_t tabstops = 5;
 
 uint_fast16_t
-frmbuf_at(void)
+cursor_at(void)
 {
 	uint_fast16_t to;
 
@@ -65,77 +28,167 @@ frmbuf_at(void)
 }
 
 void
-frmbuf_scroll(size_t rows, uint_fast8_t color)
+cursor_goto(uint_fast16_t to)
 {
-	if (rows == 0)
+	if (Cells <= to)
 		return;
 
-	if (fb_rows < rows)
-		rows = fb_rows;
-
-	memmove(
-		video_mem
-		, video_mem + 2 * rows * fb_cols
-		, 2 * (fb_rows - rows) * fb_cols
-	);
-
-	uchar * const mem = video_mem + 2 * (fb_rows - rows) * fb_cols;
-
-	for (size_t i = 0; i < rows * fb_cols; ++i) {
-		mem[2 * i] = ' ';
-		mem[2 * i + 1] = color;
-	}
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, to & 0xFF);
+	outb(0x3D4, 0x0E);
+	outb(0x3D5, to >> 8);
 }
 
 void
-frmbuf_ncpy(size_t at, char const *str, uint_fast8_t color, size_t n)
+cursor_hide(void)
 {
-	for (size_t i = 0; i < n; ++i) {
-		if (fb_size <= at)
-			at = 0;
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, inb(0x3D5) | 0x20);
+}
 
-		video_mem[2 * at] = str[i];
-		video_mem[2 * at + 1] = color;
+void
+cursor_show(void)
+{
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, inb(0x3D5) & ~0x20);
+}
+
+uint_fast8_t
+cursor_upper_scanline(void)
+{
+	outb(0x3D4, 0x0A);
+	return inb(0x3D5) & 0x1F;
+}
+
+uint_fast8_t
+cursor_lower_scanline(void)
+{
+	outb(0x3D4, 0x0B);
+	return inb(0x3D5) & 0x1F;
+}
+
+void
+cursor_set_scanlines(uint_fast8_t upper, uint_fast8_t lower)
+{
+	upper &= 0x1F;
+	lower &= 0x1F;
+
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, (inb(0x3D5) & 0xC0) | upper);
+	outb(0x3D4, 0x0B);
+	outb(0x3D5, (inb(0x3D5) & 0xE0) | lower);
+}
+
+// The caller of this function is trusted not to mess around with 'at'.
+static size_t
+raw_putchar(size_t at, uint_fast8_t color, char c)
+{
+	if (c == '\t') {
+		if (tabstops == 0)
+			tabstops = 1;
+		else if (8 < tabstops)
+			tabstops = 8;
+
+		size_t const off = at % Columns % tabstops;
+		size_t const width = tabstops - off;
+		for (size_t i = 0; i < width; ++i)
+			at = raw_putchar(at, color, ' ');
+		return at;
+	}
+
+	if (c == '\n') {
+		at = (at / Columns + 1) * Columns;
+	} else {
+		VideoMem[2 * at] = c;
+		VideoMem[2 * at + 1] = color;
+		++at;
+	}
+
+	if (Cells <= at) {
+		at -= Columns;
+		fb_scroll(1);
+	}
+
+	return at;
+}
+
+void
+fb_set(size_t at, uint_fast8_t color, char c, size_t n)
+{
+	for (; 0 < n; --n) {
+		at %= Cells;
+
+		VideoMem[2 * at] = c;
+		VideoMem[2 * at + 1] = color;
 		++at;
 	}
 }
 
 void
-frmbuf_cpy(size_t at, char const *str, uint_fast8_t color)
+fb_ncpy(size_t at, uint_fast8_t color, char const *str, size_t n)
 {
-	frmbuf_ncpy(at, str, color, strlen(str));
+	for (size_t i = 0; i < n; ++i) {
+		at %= Cells;
+
+		VideoMem[2 * at] = str[i];
+		VideoMem[2 * at + 1] = color;
+		++at;
+	}
 }
 
 void
-frmbuf_nprint(char const *str, uint_fast8_t color, size_t n)
+fb_scroll(size_t n)
 {
 	if (n == 0)
 		return;
 
-	size_t at = frmbuf_at();
-	size_t const margin = fb_size - at;
-	size_t const at_row = at / fb_cols;
+	if (Rows < n)
+		n = Rows;
 
-	size_t i = 0;
-	if (margin <= n) {
-		size_t const out = n - margin;
-		size_t rows = 1 + out / fb_cols;
+	memmove(
+		VideoMem
+		, VideoMem + 2 * n * Columns
+		, 2 * (Rows - n) * Columns
+	);
 
-		if (at_row < rows) {
-			i = n - out % fb_cols - (fb_rows - 1) * fb_cols;
-			at = 0;
-		} else {
-			at -= rows * fb_cols;
-		}
-
-		frmbuf_scroll(rows, 0x07);
-	}
-	frmbuf_ncpy(at, &str[i], color, n - i);
-	frmbuf_goto(at + n - i);
+	fb_set((Rows - n) * Columns, fb_default_color, ' ', n * Columns);
 }
 
 void
-frmbuf_print(char const *str, uint_fast8_t color)
+fb_nl(void)
 {
-	frmbuf_nprint(str, color, strlen(str));
+	uint_fast16_t at = cursor_at();
+	uint_fast16_t to_line = at / Columns + 1;
+	if (Rows <= to_line) {
+		fb_scroll(1);
+		--to_line;
+	}
+	cursor_goto(to_line * Columns);
+}
+
+void
+fb_putchar(uint_fast8_t color, char c)
+{
+	size_t at = raw_putchar(cursor_at(), color, c);
+	cursor_goto(at);
+}
+
+void
+fb_nprint(uint_fast8_t color, char const *str, size_t n)
+{
+	if (n == 0)
+		return;
+
+	size_t at = cursor_at();
+
+	for(size_t i = 0; i < n; ++i)
+		at = raw_putchar(at, color, str[i]);
+
+	cursor_goto(at);
+}
+
+void
+fb_print(uint_fast8_t color, char const *str)
+{
+	fb_nprint(color, str, strlen(str));
 }
