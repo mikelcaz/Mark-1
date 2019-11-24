@@ -9,19 +9,14 @@
 #define VideoMem ((uchar *)0xB8000)
 #include "framebuffer_macros.h"
 
+static uint_fast8_t tabstops = 5;
 uint_fast8_t fb_default_color = 0x07;
-uint_fast8_t tabstops = 5;
 
-// The caller of this function is trusted not to mess around with 'at'.
+// Callers of this function are trusted not to mess around with 'at'.
 static size_t
 raw_putchar(size_t at, uint_fast8_t color, char c)
 {
 	if (c == '\t') {
-		if (tabstops == 0)
-			tabstops = 1;
-		else if (8 < tabstops)
-			tabstops = 8;
-
 		size_t const off = at % Columns % tabstops;
 		size_t const width = tabstops - off;
 		for (size_t i = 0; i < width; ++i)
@@ -43,6 +38,19 @@ raw_putchar(size_t at, uint_fast8_t color, char c)
 	}
 
 	return at;
+}
+
+uint_fast8_t
+fb_tabstops(void)
+{
+	return tabstops;
+}
+
+void
+fb_set_tabstops(uint_fast8_t width)
+{
+	if (0 < width && width <= 8)
+		tabstops = width;
 }
 
 void
