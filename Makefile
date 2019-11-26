@@ -24,6 +24,8 @@ OKERNEL=\
 	kernel/32/libcmin.a\
 
 OASM=\
+	kernel/wrappers/cli.o\
+	kernel/wrappers/sti.o\
 	kernel/wrappers/halt.o\
 	kernel/wrappers/in_b.o\
 	kernel/wrappers/out_b.o\

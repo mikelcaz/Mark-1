@@ -4,6 +4,7 @@
 #include <stdint.h>
 //
 #include <u.h>
+#include <asm.h>
 #include <drivers/idt.h>
 #include <drivers/cursor.h>
 #include <drivers/framebuffer.h>
@@ -23,6 +24,8 @@ void kmain(void) {
 
 	idt_reset();
 	pic_reset();
+
+	sti();
 
 	fb_print(0x07, "IDT: %10P\n", &idt_);
 	fb_print(0x07, "Table of handlers: %10P\n", &isrt_handlers_);
