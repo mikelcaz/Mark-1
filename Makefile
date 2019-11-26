@@ -17,6 +17,7 @@ OKERNEL=\
 	kernel/drivers/cursor.o\
 	kernel/drivers/framebuffer.o\
 	kernel/drivers/io_b.o\
+	kernel/drivers/pic.o\
 	kernel/32/libcmin.a\
 
 OLIBCMIN=\
