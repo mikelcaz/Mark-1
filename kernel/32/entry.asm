@@ -4,6 +4,8 @@
 align 4
 
 global _start
+global idt_
+global load_idt
 
 ; The origin is at 'correction'. It is relevant for the 32-bit part.
 ; However, the 16-bit part is reached as [XXXXh:0000h],
@@ -19,6 +21,8 @@ entry_32_addr:
 	.offset dw entry_32 ; Be careful with the offset!
 	.segment dw gdt.code_sel
 
+idt_:
+%include 'kernel/32/idt.asm'
 %include 'kernel/32/gdt.asm'
 
 entry_16:
@@ -55,3 +59,7 @@ entry_32:
 
 	call kmain
 	jmp $
+
+load_idt:
+	lidt [idt_descriptor]
+	ret

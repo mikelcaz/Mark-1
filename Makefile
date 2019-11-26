@@ -14,10 +14,14 @@ KERNEL_LAYOUT=\
 OKERNEL=\
 	kernel/32/entry.o\
 	kernel/32/kernel.o\
+	kernel/32/isr.o\
 	kernel/drivers/cursor.o\
 	kernel/drivers/framebuffer.o\
-	kernel/drivers/io_b.o\
+	kernel/drivers/idt.o\
+	kernel/drivers/basic_isr.o\
 	kernel/drivers/pic.o\
+	kernel/drivers/halt.o\
+	kernel/drivers/io_b.o\
 	kernel/32/libcmin.a\
 
 OLIBCMIN=\
