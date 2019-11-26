@@ -1,5 +1,6 @@
 [bits 16]
 [extern kmain]
+[extern halt]
 
 align 4
 
@@ -58,7 +59,7 @@ entry_32:
 	mov ESP, 0x70000
 
 	call kmain
-	jmp $
+	jmp halt
 
 load_idt:
 	lidt [idt_descriptor]
