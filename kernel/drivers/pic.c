@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 //
-#include <drivers/io_b.h>
+#include <asm.h>
 #include <drivers/pic.h>
 
 #define PIC1_CMD 0x20

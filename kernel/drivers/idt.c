@@ -2,6 +2,7 @@
 #include <stdint.h>
 //
 #include <u.h>
+#include <asm.h>
 #include <drivers/idt.h>
 
 extern uchar idt_;

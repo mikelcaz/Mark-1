@@ -3,7 +3,7 @@
 #include <stdint.h>
 //
 #include <u.h>
-#include <drivers/halt.h>
+#include <asm.h>
 #include <drivers/framebuffer.h>
 
 void

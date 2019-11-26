@@ -20,9 +20,13 @@ OKERNEL=\
 	kernel/drivers/idt.o\
 	kernel/drivers/basic_isr.o\
 	kernel/drivers/pic.o\
-	kernel/drivers/halt.o\
-	kernel/drivers/io_b.o\
+	$(OASM)\
 	kernel/32/libcmin.a\
+
+OASM=\
+	kernel/wrappers/halt.o\
+	kernel/wrappers/in_b.o\
+	kernel/wrappers/out_b.o\
 
 OLIBCMIN=\
 	kernel/32/string.o\

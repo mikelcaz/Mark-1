@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
 //
+#include <asm.h>
 #include <drivers/cursor.h>
-#include <drivers/io_b.h>
 
 #include "framebuffer_macros.h"
 
