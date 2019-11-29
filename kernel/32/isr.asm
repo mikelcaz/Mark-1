@@ -1,5 +1,6 @@
 [bits 32]
 [extern unhandled_interrupt]
+[extern timer_tick]
 
 align 4
 
@@ -71,6 +72,8 @@ isrt:
 	%assign i (i + 1)
 	%endrep
 .raw_func:
+	times 0x20 - ($ - isrt.raw_func) / 4 dd unhandled_interrupt
+	dd timer_tick
 	times 256 - ($ - isrt.raw_func) / 4 dd unhandled_interrupt
 
 handler_simple 0x00
