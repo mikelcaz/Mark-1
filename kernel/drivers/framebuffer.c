@@ -5,6 +5,7 @@
 //
 #include <u.h>
 #include <drivers/framebuffer.h>
+#include <drivers/framebuffer_va.h>
 #include <drivers/cursor.h>
 #include <string.h>
 

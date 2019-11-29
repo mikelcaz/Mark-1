@@ -9,7 +9,5 @@ void fb_scroll(size_t n);
 
 void fb_nl(void);
 void fb_putchar(uint_fast8_t color, char c);
-void fb_vnprint(uint_fast8_t color, char const *fmt, size_t n, va_list ap);
 void fb_nprint(uint_fast8_t color, char const *fmt, size_t n, ...);
-void fb_vprint(uint_fast8_t color, char const *fmt, va_list ap);
 void fb_print(uint_fast8_t color, char const *fmt, ...);
