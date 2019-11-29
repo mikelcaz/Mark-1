@@ -13,7 +13,8 @@
 #include "framebuffer_macros.h"
 
 static uint_fast8_t tabstops = 5;
-uint_fast8_t fb_default_color = 0x07;
+uint_fast8_t fb_fill_color = 0x07;
+uint_fast8_t fb_print_color = 0x07;
 
 // Callers of "raw_*" functions are trusted not to mess around with 'at'.
 
@@ -148,7 +149,7 @@ fb_scroll(size_t n)
 		, 2 * (Rows - n) * Columns
 	);
 
-	fb_set((Rows - n) * Columns, fb_default_color, ' ', n * Columns);
+	fb_set((Rows - n) * Columns, fb_fill_color, ' ', n * Columns);
 }
 
 void
@@ -164,14 +165,14 @@ fb_nl(void)
 }
 
 void
-fb_putchar(uint_fast8_t color, char c)
+fb_putcharc(uint_fast8_t color, char c)
 {
 	size_t at = raw_putchar(cursor_at(), color, c);
 	cursor_goto(at);
 }
 
 void
-fb_vnprint(uint_fast8_t color, char const *fmt, size_t n, va_list ap)
+fb_vnprintc(uint_fast8_t color, char const *fmt, size_t n, va_list ap)
 {
 	if (n == 0)
 		return;
@@ -412,25 +413,49 @@ fb_vnprint(uint_fast8_t color, char const *fmt, size_t n, va_list ap)
 }
 
 void
-fb_nprint(uint_fast8_t color, char const *fmt, size_t n, ...)
+fb_nprintc(uint_fast8_t color, char const *fmt, size_t n, ...)
 {
 	va_list ap;
 	va_start(ap, n);
-	fb_vnprint(color, fmt, n, ap);
+	fb_vnprintc(color, fmt, n, ap);
 	va_end(ap);
 }
 
 void
-fb_vprint(uint_fast8_t color, char const *fmt, va_list ap)
+fb_vprintc(uint_fast8_t color, char const *fmt, va_list ap)
 {
-	fb_vnprint(color, fmt, strlen(fmt), ap);
+	fb_vnprintc(color, fmt, strlen(fmt), ap);
 }
 
 void
-fb_print(uint_fast8_t color, char const *fmt, ...)
+fb_printc(uint_fast8_t color, char const *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	fb_vprint(color, fmt, ap);
+	fb_vprintc(color, fmt, ap);
+	va_end(ap);
+}
+
+void
+fb_putchar(char c)
+{
+	fb_putcharc(fb_print_color, c);
+}
+
+void
+fb_nprint(char const *fmt, size_t n, ...)
+{
+	va_list ap;
+	va_start(ap, n);
+	fb_vnprintc(fb_print_color, fmt, n, ap);
+	va_end(ap);
+}
+
+void
+fb_print(char const *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	fb_vprintc(fb_print_color, fmt, ap);
 	va_end(ap);
 }

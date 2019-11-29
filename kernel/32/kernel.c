@@ -28,10 +28,10 @@ void kmain(void) {
 
 	sti();
 
-	fb_print(0x07, "IDT: %10P\n", &idt_);
-	fb_print(0x07, "Table of handlers: %10P\n", &isrt_handlers_);
-	fb_print(0x07, "Table of raw functions: %10P\n", (uintptr_t)&isrt_handlers_ + 0x400);
-	fb_print(0x07, "Unhandled interrupt fn: %10P\n", unhandled_interrupt);
+	fb_print("IDT: %10P\n", &idt_);
+	fb_print("Table of handlers: %10P\n", &isrt_handlers_);
+	fb_print("Table of raw functions: %10P\n", (uintptr_t)&isrt_handlers_ + 0x400);
+	fb_print("Unhandled interrupt fn: %10P\n", unhandled_interrupt);
 
 	int a = 42 / 0;
 }
