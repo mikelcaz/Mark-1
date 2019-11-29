@@ -15,7 +15,9 @@ extern uchar idt_;
 extern uchar handler_0;
 extern uchar isrt_handlers_;
 
-extern void unhandled_interrupt();
+// TODO: Remove fw declaration when done.
+#include "../drivers/isr.h"
+extern ISR(unhandled_interrupt);
 
 void kmain(void) {
 	char const kernel_msg[] = "32-bit mode kernel";

@@ -18,8 +18,8 @@ OKERNEL=\
 	kernel/drivers/cursor.o\
 	kernel/drivers/framebuffer.o\
 	kernel/drivers/idt.o\
-	kernel/drivers/basic_isr.o\
 	kernel/drivers/pic.o\
+	kernel/drivers/unhandled_interrupt.o\
 	$(OASM)\
 	kernel/32/libcmin.a\
 

@@ -5,31 +5,9 @@
 #include <u.h>
 #include <asm.h>
 #include <drivers/framebuffer.h>
+#include "isr.h"
 
-void
-unhandled_interrupt(
-	uint ss
-	, uint gs
-	, uint fs
-	, uint es
-	, uint ds
-	, uint edi
-	, uint esi
-	, uint ebp
-	, uint esp
-	, uint ebx
-	, uint edx
-	, uint ecx
-	, uint eax
-	, uint index
-	, uint error
-	, uint eip
-	, uint cs
-	, uint eflags
-	// This is only pushed on context switches:
-	// , uint old_esp
-	// , uint old_ss
-)
+ISR(unhandled_interrupt)
 {
 	fb_print(0x4E, "Interrupt vector: 0x%2X (%u), Error code: 0x%2X (%u)\n", index, index, error, error);
 	fb_print(0x4E, "CS: 0x%8X, EIP: 0x%8X, EFLAGS: 0x%8X\n", cs, eip, eflags);
