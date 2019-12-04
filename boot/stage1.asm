@@ -50,6 +50,8 @@ stage_1:
 		jmp $
 	.it_seems_a_valid_drive_number:
 
+	call a20.ensure_enabled
+
 	; Second stage load.
 
 	mov DL, [.boot_drive]
@@ -95,6 +97,7 @@ stage_1:
 %include 'boot/print_16/string.asm'
 %include 'boot/load_16.asm'
 %include 'boot/load_ck_16.asm'
+%include 'boot/a20.asm'
 
 times (0x200 - 72) - ($ - $$) nop
 
