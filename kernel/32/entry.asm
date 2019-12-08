@@ -6,6 +6,7 @@ align 4
 
 global _start
 global idt_
+global smap_
 global load_idt
 
 ; The origin is at 'correction'. It is relevant for the 32-bit part.
@@ -22,9 +23,16 @@ entry_32_addr:
 	.offset dw entry_32 ; Be careful with the offset!
 	.segment dw gdt.code_sel
 
+times (8 - ($ - $$) % 8) db 0x00
 idt_:
 %include 'kernel/32/idt.asm'
+
+times (8 - ($ - $$) % 8) db 0x00
 %include 'kernel/32/gdt.asm'
+
+times (8 - ($ - $$) % 8) db 0x00
+smap_:
+%include 'kernel/32/smap.asm'
 
 entry_16:
 	mov AX, 0x0E00 + 'K'
@@ -33,6 +41,8 @@ entry_16:
 
 	mov AX, CS
 	mov DS, AX
+
+	call smap.read
 
 	cli
 	lgdt [gdt_descriptor - correction]

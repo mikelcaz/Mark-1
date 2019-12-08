@@ -18,6 +18,7 @@ OKERNEL=\
 	kernel/drivers/cursor.o\
 	kernel/drivers/framebuffer.o\
 	kernel/drivers/idt.o\
+	kernel/drivers/paging.o\
 	kernel/drivers/pic.o\
 	kernel/drivers/timer.o\
 	kernel/drivers/unhandled_interrupt.o\

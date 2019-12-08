@@ -7,6 +7,7 @@
 #include <drivers/idt.h>
 #include <drivers/cursor.h>
 #include <drivers/framebuffer.h>
+#include <drivers/paging.h>
 #include <drivers/pic.h>
 #include <drivers/timer.h>
 #include <string.h>
@@ -20,10 +21,14 @@ extern uchar isrt_handlers_;
 extern ISR(unhandled_interrupt);
 extern ISR(timer_tick);
 
-void kmain(void) {
+void
+kmain(void)
+{
 	char const kernel_msg[] = "32-bit mode kernel";
 	fb_ncpy(80 * 24, 0xF9, kernel_msg, strlen(kernel_msg));
 	fb_nl();
+
+	mem_normalize();
 
 	idt_reset();
 	pic_reset();
