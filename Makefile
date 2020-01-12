@@ -57,7 +57,7 @@ kernel/32/kernel.bin: $(OKERNEL)
 	$(XCC) $(XLDFLAGS) -T kernel/32/link.ld -o $@ $^ $(XLDLIBS)
 
 kernel/32/libcmin.a: $(OLIBCMIN)
-	ar crsv $@ $^
+	$(XAR) crsv $@ $^
 
 %.o: %.asm
 	nasm -f elf -w+orphan-labels -o $@ $<
@@ -71,6 +71,7 @@ kernel/32/%.o: libcmin/%.c
 CFLAGS=-Wall -Wextra -pedantic -Wstrict-prototypes
 
 XCC?=your-cross-gcc
+XAR?=your-cross-gnu-ar
 XCFLAGS=-ffreestanding -mno-red-zone $(CFLAGS)
 XLDFLAGS=-nostdlib
 XLDLIBS=-lgcc
