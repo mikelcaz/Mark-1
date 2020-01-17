@@ -1,3 +1,7 @@
+; Copyright © 2019-2020 Mikel Cazorla Pérez
+; This file is part of Mark 1,
+; licensed under the terms of GPLv2.
+
 [bits 16]
 
 print_hex_b:
@@ -33,6 +37,6 @@ print_hex_nibble:
 	.is_a_number:
 		add AL, '0'
 	.endif:
-	
+
 	int 0x10
 	ret

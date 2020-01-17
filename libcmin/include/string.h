@@ -1,3 +1,7 @@
+// Copyright © 2019-2020 Mikel Cazorla Pérez
+// This file is part of Mark 1,
+// licensed under the terms of GPLv2.
+
 int memcmp(void const *a, void const *b, size_t n);
 void *memcpy(void *dst, void const *src, size_t n);
 void *memmove(void *dst, void const *src, size_t n);

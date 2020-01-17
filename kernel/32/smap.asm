@@ -1,3 +1,7 @@
+; Copyright © 2019-2020 Mikel Cazorla Pérez
+; This file is part of Mark 1,
+; licensed under the terms of GPLv2.
+
 smap:
 .entries EQU 12
 .table EQU .phys_table - correction

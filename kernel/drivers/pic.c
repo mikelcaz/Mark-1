@@ -1,3 +1,7 @@
+// Copyright © 2019-2020 Mikel Cazorla Pérez
+// This file is part of Mark 1,
+// licensed under the terms of GPLv2.
+
 // IRQ0-7 are mapped to 0x08-0x0F interrupt vectors by default.
 // These IVs overlap with architecture-defined exceptions
 // (which take 0x00-0x1F IVs), whereas 0x20-0xFF are free to use.

@@ -1,3 +1,7 @@
+; Copyright © 2019-2020 Mikel Cazorla Pérez
+; This file is part of Mark 1,
+; licensed under the terms of GPLv2.
+
 ; G(ranularity, *4KiB)
 ; D/B (default operation size, 0 means 16 bits, 1 means 32 bits.)
 ; L(ong mode, i.e. 64-bit code descriptor, reserved for data segments.)
